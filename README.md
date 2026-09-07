@@ -111,13 +111,11 @@ The multi-agent execution pipeline outputs three domain-isolated PRs ready for h
 **Question:** _How does your implementation guarantee zero cross-broker data leakage across shared infrastructure?_  
 **Answer:**
 
-se abordaron 3 frentes: base de datos, backend, websocket:
+Se abordaron 3 frentes: base de datos, backend y WebSockets:
 
-Base de datos: se agrego un indice compuesto en todas las tablas, usando el brocker_id. de esta manera siempre sera requerido para extraer informacion de un tenant.
-
-back: se creo un Guard, para asegurar que el broker_id siempre venga en la peticion http, en caso de no haber un broker_id retorna un error 403
-
-websocket: la coneccion al WS requiere de forma obligatoria el uso de JWT, el brocker_id esta incrustrado en este token.
+- **Base de datos:** Se agregó un índice compuesto en todas las tablas utilizando `broker_id`. De esta manera, siempre será requerido para extraer información de un tenant.
+- **Backend:** Se creó un Guard para asegurar que el `broker_id` siempre venga en la petición HTTP. En caso de no incluir un `broker_id`, retorna un error 403.
+- **WebSockets:** La conexión al WebSocket requiere de forma obligatoria el uso de JWT, donde el `broker_id` está incrustado en este token.
 
 ---
 
@@ -134,7 +132,7 @@ Futures contracts track different index multipliers (`point_value_usd`):
 
 **Calculation Formulas:**
 
-esta respuesta fue generada, debido a limite de tiempos no podre explicarla pero, con gusto podre ahodar un poco mas en ella con un poco mas de tiempo.
+Esta respuesta fue generada; debido al límite de tiempo no podré explicarla en detalle, pero con gusto podré ahondar un poco más en ella teniendo un poco más de tiempo.
 
 ---
 
@@ -143,110 +141,107 @@ esta respuesta fue generada, debido a limite de tiempos no podre explicarla pero
 **Question:** _How are sensitive customer details in support and audit notes handled?_  
 **Answer:**
 
-En el archivo dataset/traders.csv venían notas de soporte sin ningún tipo de filtro: números de ruta ACH, SSNs, teléfonos personales y enlaces directos a pasaportes en buckets de S3.
+En el archivo `dataset/traders.csv` venían notas de soporte sin ningún tipo de filtro: números de ruta ACH, SSNs, teléfonos personales y enlaces directos a pasaportes en buckets de S3.
 
-Para frenar esto de raíz y no arriesgar datos en producción, implementé PiiRedactionInterceptor junto con PiiRedactor. Lo que hacen es pasar expresiones regulares (RegEx) de alto rendimiento sobre los logs del sistema para limpiar automáticamente cualquier cadena sensible antes de que salga ([REDACTED_SSN], [REDACTED_BANK_INFO], [REDACTED_PHONE], [REDACTED_EMAIL], [REDACTED_KYC_S3_URI]).
+Para frenar esto de raíz y no arriesgar datos en producción, implementé `PiiRedactionInterceptor` junto con `PiiRedactor`. Lo que hacen es pasar expresiones regulares (RegEx) de alto rendimiento sobre los logs del sistema para limpiar automáticamente cualquier cadena sensible antes de que salga (`[REDACTED_SSN]`, `[REDACTED_BANK_INFO]`, `[REDACTED_PHONE]`, `[REDACTED_EMAIL]`, `[REDACTED_KYC_S3_URI]`).
 
 Con esto garantizo que la PII cruda jamás toque la consola (stdout) ni termine expuesta en herramientas de monitoreo o servicios de logs en la nube.
 
+---
+
 # Architecture Handoff Reflection
 
-- para atacar efectivamente esta aplicacion y cumplir con el tiempo de entrega necesariamente se debio proceder con el uso de inteligencia artificial, en este sentido, yo fui mas un orquestador de un equipo de agentes que un desarrollador de software, este fue mi proceder:
+- Para atacar efectivamente esta aplicación y cumplir con el tiempo de entrega, necesariamente se debió proceder con el uso de inteligencia artificial. En este sentido, yo fui más un orquestador de un equipo de agentes que un desarrollador de software. Este fue mi proceder:
 
-1. creacion del boilerplate:
-   se requirio crear un proyecto separando el front el back, implementacion de langchain y agents.MD para el manejo del codigo
+1. **Creación del boilerplate:**
+   Se requirió crear un proyecto separando el frontend y el backend, con la implementación de LangChain y `AGENTS.md` para el manejo del código.
 
-2. creacion de arquitectura agentica:
-   se uso una arquitectura en paralela de agentes usando langchain, con los siguientes roles: front, back, especialista en seguridad, segun mi esperiencia, esta es la mejor alineacion para el manejo del tiempo
+2. **Creación de arquitectura agéntica:**
+   Se usó una arquitectura paralela de agentes usando LangChain, con los siguientes roles: frontend, backend y especialista en seguridad. Según mi experiencia, esta es la mejor alineación para el manejo del tiempo.
 
-3. identificacion de los puntos criticos de la aplicacion
-   entendimiento correcto de las especificaciones, para esto recurri al resumen generado por AI, reforzado por la lectura detalla de los documentos proveidos, el resumir me ayudo a entender rapidamente los puntos criticos, el leer detalladamente me ayudo a entender la profundidad del proyecto
+3. **Identificación de los puntos críticos de la aplicación:**
+   Entendimiento correcto de las especificaciones. Para esto recurrí al resumen generado por IA, reforzado por la lectura detallada de los documentos provistos. Resumir me ayudó a entender rápidamente los puntos críticos, y leer detalladamente me ayudó a entender la profundidad del proyecto.
 
-4. implementacion
-   se genero un prompt especifico y detallado para realizar la aplicacion, revisando en detalle los puntos claves hay 2 frentes en esta tarea que tome en cuenta para su realizacion: lo que puedo delegar, lo que debo hacer personalmente, tomando enm cuenta el cumplimiento del deadline estipulado (3 horas)
+4. **Implementación:**
+   Se generó un prompt específico y detallado para realizar la aplicación. Revisando en detalle los puntos clave, hay 2 frentes en esta tarea que tomé en cuenta para su realización: lo que puedo delegar y lo que debo hacer personalmente, tomando en cuenta el cumplimiento del deadline estipulado (3 horas).
 
-# lo que puedo delegar:
+### Lo que puedo delegar:
+- Escritura de código principalmente.
+- Creación de documentación técnica.
 
-- escritura de codigo principalmente.
-- creacion de documentacion tecnica
+### Lo que debo hacer personalmente:
+- Configuración correcta de los agentes.
+- Revisión de los puntos clave de la tarea.
+- Revisión de los procesos y PRs que realizan los agentes.
+- Redacción específica de documentos destinados a la explicación de qué hice y cómo lo hice (como este en particular).
 
-# lo que debo hacer personalmente
+5. **Puntos de mejora:**
+- La arquitectura agéntica solo es un borrador; definitivamente puede ser optimizada para mejorar costos, tiempo y definición del trabajo de los agentes.
+- Para fines prácticos se creó una base de datos local usando SQLite, pero considerando la importancia de la seguridad de los datos, recomiendo FUERTEMENTE el uso de un servicio especializado en la nube como AWS RDS.
+- Implementación de herramientas de monitoreo como DataDog para monitorear los procesos críticos.
+- Definición más precisa de los agentes: mientras más contexto tengan del trabajo (ejemplos, etc.), mejor será el resultado obtenido, asegurando no inyectar datos sensibles.
+- Campañas de educación para el equipo en cuestión: es necesario que TODOS sepan diferenciar qué datos son sensibles y cuáles no, para limitar los errores de exposición de datos.
 
-- configuracion correcta de los agentes
-- revision de los puntos claves de la tarea
-- revision de los procesos y Pr's que realizan los agentes
-- redacion especifa de documentos destinados a la explicacion de que hice y como lo hice (como este en particular)
+---
 
-5. puntos de mejora
+## 13. The decision you're most proud of, and the tradeoff it cost you.
 
-- la arquitectura agenta solo es un borrador, definitivamente puede ser optimizada para mejorar costos, tiempo y definicion del trabajo de los agentes.
-- para fines practicos se creo una base de datos onsite usando SQlite, pero, considerando la importancia de la seguridad de los datos, recomiendo FUERTEMENTE el uso de un servicio especializado en la nube como RDS de aws para este punto.
-- implementacion de herramientas de monitoreo como datadog para monitorizar los procesos criticos
-- definicion mas precisa de los agentes, mientras mas contexto tengan del trabajo (ejemplos etc) mejor sera el resultado obtenido, tomando en cuenta no inyectar datos sensibles a los agentes
-- campanas de educacion para las personas en el proyecto en cuestion, es necesario que TODOS sepan diferenciar que datos son sensibles y que no para poder limitar error de exposicion de datos
+- Estar consciente del límite de tiempo (me di cuenta a la mitad), para saber a qué debo dedicar mi tiempo y a qué no.
+- Me siento orgulloso de poder delegar, dejando el trabajo repetitivo a herramientas para enfocarme en lo que sí es de mi prioridad.
 
-respondiendo las preguntas:
+## 14. The one thing you'd change with a second day.
 
-## 13. The decision you&#39;re most proud of, and the tradeoff it cost you.
-
-- estar consciente de limite de tiempo (me di cuenta a la mitad), para saber en que debo dedicar mi tiempo y en que no
-- me siento orgulloso de poder delegar. dejando el trabajo repetitivo a herramientas y enfocarme lo que si es de mi prioridad
-
-## 14. The one thing you&#39;d change with a second day.
-
-- todos los puntos de la seccion de mejora
+- Todos los puntos de la sección de mejora.
 
 ## 15. If you handed this repo to two engineers tomorrow, what would you tell them first, and what would you not let them change?
 
-- todo es reemplazable en la medida de la evolucion de negocio, hoy algo puede estar fuertemente sustentado, pero si el negocio cambia en el futuro toca pivotar. asi que:
+- Todo es reemplazable en la medida de la evolución del negocio. Hoy algo puede estar fuertemente sustentado, pero si el negocio cambia en el futuro, toca pivotar. Así que:
+- Recomendaría que el equipo se enfocara en los puntos de mejora.
+- No recomendaría (al menos en este momento) cambiar la arquitectura propuesta, la estructura de carpetas, la repetición ni el uso de otras herramientas para la misma tarea (ej. implementar otro lenguaje fuera del stack tecnológico como Java).
 
-- recomendaria que el equipo se enfocara en los puntos de mejora
-- no recomendaria (al menos este momento) cambiar la arquitectura propuesta, la estructura de las carpetas la repeticion y uso otras herramientas para la misma tarea ej: implementar otro lenguanje fuera del stack tecnologico como JAVA.
+---
 
 # Code Review
 
-```
-@Get(&#39;positions/:accountId&#39;)
-async getPositions(@Param(&#39;accountId&#39;) accountId: string, @Req() req) {
-const positions = await this.prisma.position.findMany({
-where: { accountId },
-});
-this.logger.log(
-`positions for ${accountId}: ${JSON.stringify(positions)}`,
-);
-return positions.map(p =&gt; ({
-...p,
-pnl: (p.markPrice - p.avgPrice) * p.qty,
-}));
+```typescript
+@Get('positions/:accountId')
+async getPositions(@Param('accountId') accountId: string, @Req() req) {
+  const positions = await this.prisma.position.findMany({
+    where: { accountId },
+  });
+  this.logger.log(
+    `positions for ${accountId}: ${JSON.stringify(positions)}`,
+  );
+  return positions.map(p => ({
+    ...p,
+    pnl: (p.markPrice - p.avgPrice) * p.qty,
+  }));
 }
 ```
 
 ---
 
-- punto critico: se esta logueando informacion critica que puede ser sensible, primero se debe asegurar que no haya informacion sensible en los logs
+- **Punto crítico:** Se está registrando (logging) información crítica que puede ser sensible. Primero se debe asegurar que no haya información sensible en los logs.
 
-### puntos de mejora:
+### Puntos de mejora:
+- Crear un servicio para cada acción; el controlador solo debería invocar y administrar.
+- No hacer cálculos en la respuesta del controlador; crear un servicio específico para esto.
 
-- crear un servicio para cada accion, el controlador solo deberia invocar y administrar
-- no hacer calculos en la respuesta, crear un servicio para esto.
+### Código sugerido:
 
-### codigo sugerido:
-
-```
+```typescript
 @Get('positions/:accountId')
 async getPositions(
-@Param('accountId') accountId: string,
-@Req() req: AuthenticatedRequest,
+  @Param('accountId') accountId: string,
+  @Req() req: AuthenticatedRequest,
 ): Promise<PositionResponseDto[]> {
-// Enforce tenant scoping and delegate data retrieval & calculation to the service
-return this.positionsService.getAccountPositionsWithPnl(
-accountId,
-req.user.brokerId,
-);
+  // Enforce tenant scoping and delegate data retrieval & calculation to the service
+  return this.positionsService.getAccountPositionsWithPnl(
+    accountId,
+    req.user.brokerId,
+  );
 }
-
 ```
 
-## resultado:
-
-- basado en los puntos criticos no lo aprobaria.
+## Resultado:
+- Basado en los puntos críticos, no lo aprobaría.
