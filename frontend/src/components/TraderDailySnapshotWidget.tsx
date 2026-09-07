@@ -118,7 +118,7 @@ export const TraderDailySnapshotWidget: React.FC<Props> = ({ initialBrokerId = "
         <div className="flex items-center gap-2">
           <label className="text-xs font-mono text-slate-400 uppercase tracking-wider">Select Account:</label>
           <select
-            value={selectedAccountId}
+            value={selectedAccountId || data?.accounts[0]?.accountId || ""}
             onChange={(e) => setSelectedAccountId(e.target.value)}
             className="bg-slate-900 text-slate-100 text-sm font-mono border border-slate-700 rounded-md px-3 py-1.5 focus:outline-none focus:border-cyan-500"
           >

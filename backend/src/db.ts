@@ -3,7 +3,34 @@ import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
 
-const dbPath = process.env.DB_PATH ?? "data.db";
+function getProjectFile(filename: string): string {
+  if (process.env.DB_PATH && filename === "data.db") {
+    return process.env.DB_PATH;
+  }
+  const candidates = [
+    path.resolve(process.cwd(), filename),
+    path.resolve(process.cwd(), "..", filename),
+    path.resolve(process.cwd(), "backend", filename),
+  ];
+  for (const cand of candidates) {
+    if (fs.existsSync(cand)) return cand;
+  }
+  return path.resolve(process.cwd(), filename);
+}
+
+function getDatasetDir(): string {
+  const candidates = [
+    path.resolve(process.cwd(), "dataset"),
+    path.resolve(process.cwd(), "..", "dataset"),
+    path.resolve(process.cwd(), "backend", "dataset"),
+  ];
+  for (const cand of candidates) {
+    if (fs.existsSync(path.join(cand, "brokers.csv"))) return cand;
+  }
+  return path.resolve(process.cwd(), "dataset");
+}
+
+const dbPath = getProjectFile("data.db");
 const db = new Database(dbPath);
 
 // Enable foreign keys
@@ -132,9 +159,10 @@ function parseCSV(filePath: string): Record<string, string>[] {
   });
 }
 
-export function seedDatabaseIfEmpty(datasetDir: string = path.resolve(process.cwd(), "dataset")) {
+export function seedDatabaseIfEmpty(datasetDir: string = getDatasetDir()) {
   const brokerCount = (db.prepare("SELECT COUNT(*) as count FROM brokers").get() as { count: number }).count;
-  if (brokerCount > 0) {
+  const accountCount = (db.prepare("SELECT COUNT(*) as count FROM accounts").get() as { count: number }).count;
+  if (brokerCount > 0 && accountCount > 0) {
     return;
   }
 

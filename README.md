@@ -43,17 +43,32 @@ Extra del stack del proyecto:
 
 ---
 
-## 🚀 Quick Start & Run Commands
+## 🚀 Quick Start & Run Commands / Proceso de Ejecución Local
 
-### 1. Installation & Seeding
+> [!IMPORTANT]
+> **Estrategia de Seguridad y Protección de PII:**  
+> Como medida estricta de seguridad de la información y cumplimiento de privacidad (PII Compliance), **la carpeta `dataset/` (que contiene archivos CSV con datos de clientes y soporte) y el archivo de base de datos (`data.db`) están excluidos del control de versiones en `.gitignore`**.  
+> Para ejecutar el proyecto localmente, debes **agregar la carpeta `dataset/` de manera manual** en la raíz del repositorio (`/AF-test/dataset/*.csv`) antes de iniciar los servidores.
+
+### 1. Preparación del Dataset e Instalación
 
 ```bash
+# 1. Asegurar que la carpeta dataset/ esté ubicada manualmente en la raíz del proyecto:
+# /AF-test/dataset/
+#   ├── brokers.csv
+#   ├── traders.csv
+#   ├── accounts.csv
+#   ├── instruments.csv
+#   ├── market_prices.csv
+#   └── fills.csv
+
+# 2. Instalar dependencias del monorepo
 npm install
 ```
 
-_The database schema (`data.db`) and CSV dataset (`dataset/_.csv`) are automatically loaded idempotently on backend boot.\*
+_*Nota: Al iniciar el servidor por primera vez, el backend detectará automáticamente la carpeta `dataset/` cargada manualmente y poblará la base de datos `data.db` de forma automática e idempotente._
 
-### 2. Run Backend & WebSocket Gateway
+### 2. Iniciar Backend y Gateway de WebSockets
 
 ```bash
 npm run dev -w backend
@@ -62,15 +77,15 @@ npm run dev -w backend
 - **REST API:** `http://localhost:4000/api/v1/snapshot`
 - **WebSocket Stream:** `ws://localhost:4000/ws/snapshot`
 
-### 3. Run Frontend (React + Next.js App Router UI)
+### 3. Iniciar Frontend (Next.js 15 Dark-Mode Trading UI)
 
 ```bash
 npm run dev -w frontend
 ```
 
-Open `http://localhost:5173` to interact with the **Trader Daily Snapshot Widget** and live fill simulator.
+Abre `http://localhost:5173` para interactuar con el **Trader Daily Snapshot Widget** y el simulador de ejecuciones en vivo.
 
-### 4. Execute Unit & Security Tests
+### 4. Ejecutar Suite de Tests Unitarios y Aislamiento Multi-Tenant
 
 ```bash
 npx tsx --test backend/src/snapshot/snapshotService.spec.ts

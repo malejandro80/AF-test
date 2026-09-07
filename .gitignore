@@ -1,5 +1,19 @@
+# Sensitive Customer Data & PII (Security Policy)
+dataset/
+*.csv
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/data.db
+data.db
+
+# Environment & Credentials
+.env
+.env.*
+!.env.example
+
+# Build & Dependency Artifacts
 node_modules/
 dist/
-.env
-*.db
 .superpowers/
