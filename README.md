@@ -83,8 +83,7 @@ The multi-agent execution pipeline outputs three domain-isolated PRs ready for h
 ### 1. Multi-Tenant Isolation Architecture
 
 **Question:** _How does your implementation guarantee zero cross-broker data leakage across shared infrastructure?_  
-**Answer:**  
-Cross-broker data leakage is prevented through a three-tier defence-in-depth model:
+**Answer:**
 
 se abordaron 3 frentes: base de datos, backend, websocket:
 
