@@ -8,6 +8,17 @@
 
 ---
 
+## ⏱️ Execution Time & LLM Usage / Tiempo de Ejecución y Uso de LLM
+
+- **Tiempo Total de Ejecución / How long it actually took:** ~2 horas y 45 minutos (completado dentro del margen límite estipulado de 3 horas).
+- **Uso de LLM / What I used an LLM for:**
+  - **Desarrollo y Código Base:** Generación acelerada del código para el backend (NestJS/Express + Prisma), componentes frontend (Next.js 15 App Router en Tailwind CSS), hooks de WebSockets y suite de pruebas unitarias (`snapshotService.spec.ts`).
+  - **Especificaciones de PRs y Documentación:** Redacción de los borradores técnicos para los Pull Requests divididos por dominio ([`docs/PR-01.md`](file:///Users/miguel/Desktop/programacion/AF-test/docs/PR-01.md), [`docs/PR-02.md`](file:///Users/miguel/Desktop/programacion/AF-test/docs/PR-02.md), [`docs/PR-03.md`](file:///Users/miguel/Desktop/programacion/AF-test/docs/PR-03.md)).
+  - **Resumen y Comprensión:** Análisis inicial del dataset CSV y síntesis rápida de especificaciones.
+  - **Orquestación y Control Humano (Mi Rol):** Configuración de la arquitectura agentica en paralelo (LangChain / Agents.md), diseño del aislamiento de datos multi-tenant (`broker_id`), creación de interceptores Regex de sanitización de PII, revisión de código y redacción personal de las reflexiones de arquitectura y seguridad.
+
+---
+
 ## 🧑‍💻 Antecedentes
 
 Autoevaluación del stack (1–5: 1 = nunca lo usé, 2 = nivel tutorial, 3 = he
