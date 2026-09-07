@@ -18,6 +18,6 @@ export const frontAgent: Agent = {
     const model = getChatModel();
     const chain = prompt.pipe(model);
     const res = await chain.invoke({ input });
-    return { agent: this.name, content: String(res.content) };
+    return { agent: frontAgent.name, content: String(res.content) };
   },
 };

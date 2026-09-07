@@ -25,18 +25,42 @@ function orchestrator(state: typeof GraphState.State) {
 }
 
 async function runFront(state: typeof GraphState.State) {
-  const r = await frontAgent.invoke(state.input);
-  return { results: [r] };
+  try {
+    const r = await frontAgent.invoke(state.input);
+    return { results: [r] };
+  } catch (err) {
+    return {
+      results: [
+        { agent: frontAgent.name, content: `ERROR: ${String(err)}` },
+      ],
+    };
+  }
 }
 
 async function runBack(state: typeof GraphState.State) {
-  const r = await backAgent.invoke(state.input);
-  return { results: [r] };
+  try {
+    const r = await backAgent.invoke(state.input);
+    return { results: [r] };
+  } catch (err) {
+    return {
+      results: [
+        { agent: backAgent.name, content: `ERROR: ${String(err)}` },
+      ],
+    };
+  }
 }
 
 async function runSecurity(state: typeof GraphState.State) {
-  const r = await securityAgent.invoke(state.input);
-  return { results: [r] };
+  try {
+    const r = await securityAgent.invoke(state.input);
+    return { results: [r] };
+  } catch (err) {
+    return {
+      results: [
+        { agent: securityAgent.name, content: `ERROR: ${String(err)}` },
+      ],
+    };
+  }
 }
 
 function aggregator(state: typeof GraphState.State) {
