@@ -42,7 +42,7 @@ const server = createServer(app);
 new SnapshotWebSocketGateway(server);
 
 const port = Number(process.env.PORT ?? 4000);
-server.listen(port, () => {
+server.listen(port, "0.0.0.0", () => {
   console.log(`ArrowFin Trading Platform Backend running on http://localhost:${port}`);
   console.log(`WebSocket Stream listening on ws://localhost:${port}/ws/snapshot`);
 });

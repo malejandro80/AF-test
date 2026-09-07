@@ -33,7 +33,8 @@ export function useSnapshotStream(
       setStatus(reconnectCount > 0 ? "RECONNECTING" : "CONNECTING");
 
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws/snapshot?broker_id=${encodeURIComponent(brokerId)}${accountId ? `&account_id=${encodeURIComponent(accountId)}` : ""}`;
+      const host = window.location.hostname || "localhost";
+      const wsUrl = `${protocol}//${host}:4000/ws/snapshot?broker_id=${encodeURIComponent(brokerId)}${accountId ? `&account_id=${encodeURIComponent(accountId)}` : ""}`;
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -68,7 +69,7 @@ export function useSnapshotStream(
         setStatus("DISCONNECTED");
 
         // Exponential backoff reconnect
-        const delay = Math.min(1000 * Math.pow(2, reconnectCount), 10000);
+        const delay = Math.min(2000 * Math.pow(1.5, reconnectCount), 10000);
         reconnectTimerRef.current = setTimeout(() => {
           if (isMounted) {
             setReconnectCount((prev) => prev + 1);
