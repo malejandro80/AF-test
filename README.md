@@ -14,3 +14,16 @@ backend, and a React + Vite frontend.
 ## Getting started
 
 See `agents/agents.MD` and the `backend/`/`frontend/` READMEs.
+
+## Run
+
+0. `npm install`
+1. Start backend: `npm run dev` (serves on http://localhost:4000)
+2. Start frontend: `npm run dev -w frontend` (serves on http://localhost:5173)
+3. Open http://localhost:5173 — the dev proxy forwards `/api` to the backend.
+
+## Config
+
+- `LLM_API_KEY` (+ optional `LLM_MODEL`) enables real models. Without it,
+  agents return stub responses so the app still runs end-to-end.
+- `PORT` backend port (default 4000). `DB_PATH` sqlite path (default `data.db`).

@@ -9,7 +9,7 @@
     "frontend"
   ],
   "scripts": {
-    "build": "npm run build -w backend",
+    "build": "npm run build -w agents && npm run build -w AIarchitecture && npm run build -w backend",
     "dev": "npm run dev -w backend"
   }
 }
