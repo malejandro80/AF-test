@@ -1,0 +1,118 @@
+// Prisma schema for ArrowFin Multi-Tenant Trading Platform
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Broker {
+  id              String    @id @map("id")
+  name            String
+  type            String    // 'retail' | 'prop'
+  whiteLabelName  String    @map("white_label_name")
+  apiKeyHash      String    @map("api_key_hash")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  traders         Trader[]
+  accounts        Account[]
+  fills           Fill[]
+
+  @@map("brokers")
+}
+
+model Trader {
+  id           String    @id @map("id")
+  brokerId     String    @map("broker_id")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  email        String
+  phone        String
+  dob          String
+  ssnLast4     String    @map("ssn_last4")
+  addressLine1 String    @map("address_line1")
+  city         String
+  state        String?
+  postalCode   String    @map("postal_code")
+  kycStatus    String    @map("kyc_status")
+  notes        String?
+  auditNotes   String?   @map("audit_notes")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  broker       Broker    @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  accounts     Account[]
+
+  @@index([brokerId, id])
+  @@map("traders")
+}
+
+model Account {
+  id              String   @id @map("id")
+  traderId        String   @map("trader_id")
+  brokerId        String   @map("broker_id")
+  accountNumber   String   @map("account_number")
+  accountType     String   @map("account_type")
+  balance         Float
+  buyingPower     Float    @map("buying_power")
+  maxPositionSize Int      @map("max_position_size")
+  status          String
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  trader          Trader   @relation(fields: [traderId], references: [id], onDelete: Cascade)
+  broker          Broker   @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  fills           Fill[]
+
+  @@index([brokerId, id])
+  @@index([brokerId, traderId])
+  @@map("accounts")
+}
+
+model Instrument {
+  symbol               String   @id
+  description          String
+  exchange             String
+  pointValueUsd        Float    @map("point_value_usd")
+  tickSize             Float    @map("tick_size")
+  tickValueUsd         Float    @map("tick_value_usd")
+  initialMarginUsd     Float    @map("initial_margin_usd")
+  maintenanceMarginUsd Float    @map("maintenance_margin_usd")
+
+  marketPrices         MarketPrice[]
+  fills                Fill[]
+
+  @@map("instruments")
+}
+
+model MarketPrice {
+  symbol     String   @id
+  markPrice  Float    @map("mark_price")
+  asOf       DateTime @map("as_of")
+
+  instrument Instrument @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+
+  @@map("market_prices")
+}
+
+model Fill {
+  id               String   @id
+  accountId        String   @map("account_id")
+  brokerId         String   @map("broker_id")
+  instrumentSymbol String   @map("instrument_symbol")
+  side             String   // 'BUY' | 'SELL'
+  quantity         Int
+  price            Float
+  filledAt         DateTime @map("filled_at")
+  orderId          String   @map("order_id")
+  liquidity        String   // 'maker' | 'taker'
+  commissionUsd    Float    @map("commission_usd")
+
+  account          Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  broker           Broker     @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+  instrument       Instrument @relation(fields: [instrumentSymbol], references: [symbol], onDelete: Cascade)
+
+  @@index([brokerId, accountId])
+  @@index([accountId, filledAt])
+  @@map("fills")
+}
