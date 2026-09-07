@@ -111,14 +111,6 @@ Futures contracts track different index multipliers (`point_value_usd`):
 
 esta respuesta fue generada, debido a limite de tiempos no podre explicarla pero, con gusto podre ahodar un poco mas en ella con un poco mas de tiempo.
 
-1. **Realized P&L (Current CME Session):** Session window opens `2026-08-24T22:00:00Z` (17:00 CDT Globex open). For every fill executed $\ge \text{SESSION\_START}$, P&L is calculated as:
-   $$\text{Realized P\&L} = (\text{Exit Price} - \text{Avg Entry Price}) \times (-\text{Closed Qty}) \times \text{point\_value\_usd} - \text{Commission}$$
-2. **Unrealized P&L:** Calculated for open net positions as of `2026-08-25T14:30:00Z` cut time:
-   $$\text{Unrealized P\&L} = (\text{Mark Price} - \text{Avg Entry Price}) \times \text{Net Qty} \times \text{point\_value\_usd}$$
-3. **Risk Indicator Score:** Calculated as position leverage against account balance:
-   $$\text{Risk Score} = \min\left(100, \frac{\sum |\text{Qty} \times \text{Mark Price} \times \text{point\_value\_usd}|}{\text{Account Balance}} \times 100\right)$$
-   Accounts with `Risk Score > 75%` (e.g. `ACC-1006` at 94.04%) automatically trigger pulsating high-margin visual callouts.
-
 ---
 
 ### 3. PII Protection & Regulatory Log Redaction
@@ -131,33 +123,6 @@ En el archivo dataset/traders.csv venían notas de soporte sin ningún tipo de f
 Para frenar esto de raíz y no arriesgar datos en producción, implementé PiiRedactionInterceptor junto con PiiRedactor. Lo que hacen es pasar expresiones regulares (RegEx) de alto rendimiento sobre los logs del sistema para limpiar automáticamente cualquier cadena sensible antes de que salga ([REDACTED_SSN], [REDACTED_BANK_INFO], [REDACTED_PHONE], [REDACTED_EMAIL], [REDACTED_KYC_S3_URI]).
 
 Con esto garantizo que la PII cruda jamás toque la consola (stdout) ni termine expuesta en herramientas de monitoreo o servicios de logs en la nube.
-
----
-
-## 📊 Team Lead Technology Stack Ratings
-
-As required for Team Lead evaluation, below is a self-assessment matrix reflecting technical domain mastery across the project stack:
-
-| Technology Domain                     | Rating (1-10) | Lead Technical Justification                                                                                                                            |
-| :------------------------------------ | :-----------: | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **NestJS / Clean Architecture**       |  **10 / 10**  | Modular dependency injection, custom route guards (`JwtAuthGuard`), interceptors, hexagonal service decoupling.                                         |
-| **Prisma & Relational Modeling**      | **9.5 / 10**  | Schema design with explicit tenant discriminators (`broker_id`), composite index strategies (`@@index([broker_id, account_id])`), and query isolation.  |
-| **PostgreSQL / SQLite Performance**   | **9.5 / 10**  | Composite index optimization, sub-millisecond snapshot query execution, and transactional dataset seeder.                                               |
-| **WebSockets & Real-Time Events**     |  **10 / 10**  | Connection-time handshake auth, tenant-scoped channel broadcasting, heartbeat ping/pong keepalives, and exponential backoff client reconnects.          |
-| **Next.js 15 App Router & React**     | **9.5 / 10**  | Low-latency state management, React custom hooks (`useTraderSnapshot`, `useSnapshotStream`), optimistic UI updates, and loading/error component states. |
-| **Tailwind CSS & Trading UX**         | **9.5 / 10**  | High-density dark-mode financial dashboard design, dynamic P&L color styling, margin utilization gauges, and animated high-risk callouts.               |
-| **Application Security & Compliance** |  **10 / 10**  | CFTC Rule 1.31 / NFA Compliance, PII log scrubbing, IDOR threat mitigation, JWT claim verification, and production KMS recommendations.                 |
-| **LangChain Multi-Agent Pipelines**   | **9.5 / 10**  | Parallel fan-out/fan-in LangGraph orchestration, domain-isolated PR generation, and senior code review automation.                                      |
-
----
-
-## 🛡️ Manual PR Review Gate Checkpoint
-
-All three critical human review areas are satisfied:
-
-1. ✅ **Multi-Tenant Isolation Verification:** Confirmed `WHERE broker_id = ?` is present in every DB query, REST route, and WebSocket gateway connection.
-2. ✅ **Code Review & Security Audit (Task 4):** Completed in `SECURITY.md` Section 7 with constructive team lead feedback and CFTC-compliant remediation code blocks.
-3. ✅ **Architecture & Handoff Reflection (Task 5):** Complete writeup provided above with accurate math derivations, point value accounting, and stack ratings.
 
 # Architecture Handoff Reflection
 
@@ -197,19 +162,66 @@ All three critical human review areas are satisfied:
 
 respondiendo las preguntas:
 
-13. The decision you&#39;re most proud of, and the tradeoff it cost you.
+## 13. The decision you&#39;re most proud of, and the tradeoff it cost you.
 
 - estar consciente de limite de tiempo (me di cuenta a la mitad), para saber en que debo dedicar mi tiempo y en que no
 - me siento orgulloso de poder delegar. dejando el trabajo repetitivo a herramientas y enfocarme lo que si es de mi prioridad
 
-14. The one thing you&#39;d change with a second day.
+## 14. The one thing you&#39;d change with a second day.
 
 - todos los puntos de la seccion de mejora
 
-15. If you handed this repo to two engineers tomorrow, what would you tell them first, and what would you
-    not let them change?
+## 15. If you handed this repo to two engineers tomorrow, what would you tell them first, and what would you not let them change?
 
 - todo es reemplazable en la medida de la evolucion de negocio, hoy algo puede estar fuertemente sustentado, pero si el negocio cambia en el futuro toca pivotar. asi que:
 
 - recomendaria que el equipo se enfocara en los puntos de mejora
 - no recomendaria (al menos este momento) cambiar la arquitectura propuesta, la estructura de las carpetas la repeticion y uso otras herramientas para la misma tarea ej: implementar otro lenguanje fuera del stack tecnologico como JAVA.
+
+# Code Review
+
+```
+@Get(&#39;positions/:accountId&#39;)
+async getPositions(@Param(&#39;accountId&#39;) accountId: string, @Req() req) {
+const positions = await this.prisma.position.findMany({
+where: { accountId },
+});
+this.logger.log(
+`positions for ${accountId}: ${JSON.stringify(positions)}`,
+);
+return positions.map(p =&gt; ({
+...p,
+pnl: (p.markPrice - p.avgPrice) * p.qty,
+}));
+}
+```
+
+---
+
+- punto critico: se esta logueando informacion critica que puede ser sensible, primero se debe asegurar que no haya informacion sensible en los logs
+
+### puntos de mejora:
+
+- crear un servicio para cada accion, el controlador solo deberia invocar y administrar
+- no hacer calculos en la respuesta, crear un servicio para esto.
+
+### codigo sugerido:
+
+```
+@Get('positions/:accountId')
+async getPositions(
+@Param('accountId') accountId: string,
+@Req() req: AuthenticatedRequest,
+): Promise<PositionResponseDto[]> {
+// Enforce tenant scoping and delegate data retrieval & calculation to the service
+return this.positionsService.getAccountPositionsWithPnl(
+accountId,
+req.user.brokerId,
+);
+}
+
+```
+
+## resultado:
+
+- basado en los puntos criticos no lo aprobaria.
