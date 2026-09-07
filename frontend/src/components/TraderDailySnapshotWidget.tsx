@@ -17,6 +17,7 @@ export const TraderDailySnapshotWidget: React.FC<Props> = ({ initialBrokerId = "
     setData(updatedSnapshot);
   });
 
+  // Default to first account if none specifically selected from dropdown
   const selectedAccount: AccountSnapshot | undefined = selectedAccountId
     ? data?.accounts.find((a) => a.accountId === selectedAccountId)
     : data?.accounts[0];
@@ -121,7 +122,6 @@ export const TraderDailySnapshotWidget: React.FC<Props> = ({ initialBrokerId = "
             onChange={(e) => setSelectedAccountId(e.target.value)}
             className="bg-slate-900 text-slate-100 text-sm font-mono border border-slate-700 rounded-md px-3 py-1.5 focus:outline-none focus:border-cyan-500"
           >
-            <option value="">-- All Tenant Accounts --</option>
             {data?.accounts.map((acc) => (
               <option key={acc.accountId} value={acc.accountId}>
                 {acc.accountNumber} ({acc.traderName}) - {acc.accountType.toUpperCase()}

@@ -17,11 +17,15 @@ snapshotRouter.use(jwtAuthGuard);
 snapshotRouter.get("/snapshot", (req: AuthenticatedRequest, res: Response) => {
   try {
     const brokerId = req.user!.brokerId;
-    const accountId = req.query.account_id as string | undefined;
+    const rawAccountId = req.query.account_id;
+    // Sanitize account_id: treat empty strings or whitespace as undefined (all accounts)
+    const targetAccountId = typeof rawAccountId === "string" && rawAccountId.trim().length > 0
+      ? rawAccountId.trim()
+      : undefined;
 
-    logRedacted(`Fetching daily snapshot for broker ${brokerId}`, { accountId });
+    logRedacted(`Fetching daily snapshot for broker ${brokerId}`, { targetAccountId });
 
-    const snapshot = snapshotService.getSnapshot(brokerId, accountId);
+    const snapshot = snapshotService.getSnapshot(brokerId, targetAccountId);
     res.json(snapshot);
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);

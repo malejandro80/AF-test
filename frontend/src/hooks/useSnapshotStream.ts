@@ -18,19 +18,24 @@ export function useSnapshotStream(
 ) {
   const [status, setStatus] = useState<ConnectionStatus>("DISCONNECTED");
   const [lastEvent, setLastEvent] = useState<StreamEvent | null>(null);
-  const [reconnectCount, setReconnectCount] = useState<number>(0);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectCountRef = useRef<number>(0);
+  const callbackRef = useRef(onSnapshotUpdate);
+
+  useEffect(() => {
+    callbackRef.current = onSnapshotUpdate;
+  }, [onSnapshotUpdate]);
 
   useEffect(() => {
     let isMounted = true;
 
     function connect() {
-      if (wsRef.current) {
-        wsRef.current.close();
+      if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+        return;
       }
 
-      setStatus(reconnectCount > 0 ? "RECONNECTING" : "CONNECTING");
+      setStatus(reconnectCountRef.current > 0 ? "RECONNECTING" : "CONNECTING");
 
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.hostname || "localhost";
@@ -42,7 +47,7 @@ export function useSnapshotStream(
       ws.onopen = () => {
         if (!isMounted) return;
         setStatus("CONNECTED");
-        setReconnectCount(0);
+        reconnectCountRef.current = 0;
       };
 
       ws.onmessage = (event) => {
@@ -51,8 +56,8 @@ export function useSnapshotStream(
           const parsed: StreamEvent = JSON.parse(event.data);
           setLastEvent(parsed);
 
-          if (parsed.type === "SNAPSHOT_UPDATE" && parsed.data && onSnapshotUpdate) {
-            onSnapshotUpdate(parsed.data as SnapshotResponse);
+          if (parsed.type === "SNAPSHOT_UPDATE" && parsed.data && callbackRef.current) {
+            callbackRef.current(parsed.data as SnapshotResponse);
           }
         } catch {
           // Non-json ping message
@@ -68,11 +73,11 @@ export function useSnapshotStream(
         if (!isMounted) return;
         setStatus("DISCONNECTED");
 
-        // Exponential backoff reconnect
-        const delay = Math.min(2000 * Math.pow(1.5, reconnectCount), 10000);
+        // Exponential backoff reconnect without triggering React effect re-runs
+        const delay = Math.min(2000 * Math.pow(1.5, reconnectCountRef.current), 10000);
         reconnectTimerRef.current = setTimeout(() => {
           if (isMounted) {
-            setReconnectCount((prev) => prev + 1);
+            reconnectCountRef.current += 1;
             connect();
           }
         }, delay);
@@ -84,9 +89,12 @@ export function useSnapshotStream(
     return () => {
       isMounted = false;
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-      if (wsRef.current) wsRef.current.close();
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.close();
+      }
     };
-  }, [brokerId, accountId, reconnectCount, onSnapshotUpdate]);
+  }, [brokerId, accountId]);
 
-  return { status, lastEvent, reconnectCount };
+  return { status, lastEvent, reconnectCount: reconnectCountRef.current };
 }
