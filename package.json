@@ -1,0 +1,15 @@
+{
+  "name": "af-test-boilerplate",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "agents",
+    "AIarchitecture",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build -w backend",
+    "dev": "npm run dev -w backend"
+  }
+}
